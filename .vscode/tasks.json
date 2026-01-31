@@ -31,6 +31,21 @@
                 "panel": "new"
             },
             "problemMatcher": []
+        },
+
+        {
+            "label": "save to game_log",
+            "type": "shell",
+            "command": "python3 -m tictactoe.main --player1 tictactoe/players/ai_v0.py --player2 tictactoe/players/ai_v1.py --display --no-clear --win-length 5 --size 10 --save-to game_log.txt",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
         }
     ]
 }
