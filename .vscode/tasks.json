@@ -4,7 +4,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "compare-tictactoe-ai",
+            "label": "compare versions",
             "type": "shell",
             "command": "python3 -m tictactoe.main --player1 tictactoe/players/ai_v0.py --player2 tictactoe/players/ai_v1.py --games 1000 --win-length 5 --size 10",
             "group": {
