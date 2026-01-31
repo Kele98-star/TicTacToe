@@ -114,6 +114,8 @@ Examples:
                         help='Number in a row to win (default: 5 for boards > 5x5, size otherwise)')
     parser.add_argument('--display', action='store_true',
                         help='Display board after each move (only for single game)')
+    parser.add_argument('--no-clear', action='store_true',
+                        help='Don\'t clear terminal when displaying board')
     parser.add_argument('--quiet', action='store_true',
                         help='Suppress all output except final results')
     parser.add_argument('--name1', type=str, default=None,
@@ -134,7 +136,8 @@ Examples:
 
         if args.games == 1:
             # Single game
-            winner = runner.play_game(player1, player2, display_board=args.display or verbose)
+            winner = runner.play_game(player1, player2, display_board=args.display or verbose,
+                                     clear_display=not args.no_clear)
 
             if verbose:
                 if winner == -1:

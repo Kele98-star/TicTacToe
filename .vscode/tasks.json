@@ -6,7 +6,22 @@
         {
             "label": "compare-tictactoe-ai",
             "type": "shell",
-            "command": "python3 -m tictactoe.main --player1 tictactoe/players/ai_v0.py --player2 tictactoe/players/ai_v1.py --games 1000",
+            "command": "python3 -m tictactoe.main --player1 tictactoe/players/ai_v0.py --player2 tictactoe/players/ai_v1.py --games 1000 --win-length 5 --size 10",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+
+        {
+            "label": "display",
+            "type": "shell",
+            "command": "python3 -m tictactoe.main --player1 tictactoe/players/ai_v0.py --player2 tictactoe/players/ai_v1.py --display --no-clear --win-length 5 --size 10",
             "group": {
                 "kind": "build",
                 "isDefault": true

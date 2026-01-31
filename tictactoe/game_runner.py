@@ -21,7 +21,8 @@ class GameRunner:
         self.win_length = win_length
         self.verbose = verbose
 
-    def play_game(self, player1: Player, player2: Player, display_board: bool = False) -> int:
+    def play_game(self, player1: Player, player2: Player, display_board: bool = False,
+                  clear_display: bool = True) -> int:
         """
         Play a single game between two players.
 
@@ -29,6 +30,7 @@ class GameRunner:
             player1: First player (plays as -1)
             player2: Second player (plays as 1)
             display_board: Whether to display the board after each move
+            clear_display: Whether to clear terminal before displaying board
 
         Returns:
             Winner: -1 (player1), 1 (player2), or 0 (draw)
@@ -37,7 +39,8 @@ class GameRunner:
         players = {-1: player1, 1: player2}
 
         if self.verbose and display_board:
-            clear()
+            if clear_display:
+                clear()
             # print("\n" * 2)
             print(f"{'='*50}")
             print(f"{player1.name} (X) vs {player2.name} (O)")
@@ -63,7 +66,8 @@ class GameRunner:
                 move_count += 1
 
                 if self.verbose and display_board:
-                    clear()
+                    if clear_display:
+                        clear()
                     print("\n" * 2)
                     print(f"{'='*50}")
                     print(f"{player1.name} (X) vs {player2.name} (O)")
