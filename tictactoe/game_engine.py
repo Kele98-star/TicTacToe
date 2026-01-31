@@ -1,5 +1,9 @@
 import numpy as np
-from typing import Tuple, Optional
+import os
+
+
+def clear():
+    os.system("cls" if os.name == "nt" else "clear")
 
 
 class TicTacToeGame:
@@ -11,7 +15,7 @@ class TicTacToeGame:
      1: Player 2
     """
 
-    def __init__(self, size: int = 100, win_length: int = 5):
+    def __init__(self, size: int = 100, win_length: int = None):
         """
         Initialize the game.
 
@@ -118,9 +122,17 @@ class TicTacToeGame:
         """Return a copy of the current board state."""
         return self.board.copy()
 
-    def display(self):
+    def display(self, clear_screen: bool = True):
         """Display the board in the terminal."""
+        if clear_screen:
+            clear()
+
         symbols = {-1: 'X', 0: '.', 1: 'O'}
+
+        # Get the latest move position if any
+        latest_move = None
+        if self.move_history:
+            latest_move = (self.move_history[-1][0], self.move_history[-1][1])
 
         # Print column numbers
         print("   ", end="")
@@ -140,10 +152,18 @@ class TicTacToeGame:
 
             for col in range(self.size):
                 symbol = symbols[self.board[row, col]]
-                if self.size <= 26:
-                    print(f" {symbol} ", end="")
+
+                # Highlight latest move in red
+                if latest_move and row == latest_move[0] and col == latest_move[1]:
+                    if self.size <= 26:
+                        print(f"\033[91m {symbol} \033[0m", end="")
+                    else:
+                        print(f"\033[91m {symbol}  \033[0m", end="")
                 else:
-                    print(f" {symbol}  ", end="")
+                    if self.size <= 26:
+                        print(f" {symbol} ", end="")
+                    else:
+                        print(f" {symbol}  ", end="")
             print()
         print()
 

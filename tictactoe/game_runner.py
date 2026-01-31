@@ -1,5 +1,4 @@
-from typing import Tuple, Optional
-from tictactoe.game_engine import TicTacToeGame
+from tictactoe.game_engine import TicTacToeGame, clear
 from tictactoe.player_interface import Player
 
 
@@ -38,7 +37,9 @@ class GameRunner:
         players = {-1: player1, 1: player2}
 
         if self.verbose and display_board:
-            print(f"\n{'='*50}")
+            clear()
+            # print("\n" * 2)
+            print(f"{'='*50}")
             print(f"{player1.name} (X) vs {player2.name} (O)")
             print(f"{'='*50}")
             game.display()
@@ -62,6 +63,11 @@ class GameRunner:
                 move_count += 1
 
                 if self.verbose and display_board:
+                    clear()
+                    print("\n" * 2)
+                    print(f"{'='*50}")
+                    print(f"{player1.name} (X) vs {player2.name} (O)")
+                    print(f"{'='*50}")
                     symbol = 'X' if game.current_player == 1 else 'O'  # Opposite since we switched
                     print(f"Move {move_count}: {current_player.name} plays ({row}, {col})")
                     game.display()
