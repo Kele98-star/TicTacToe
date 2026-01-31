@@ -1,0 +1,15 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Compare TicTacToe AI v0 vs v1",
+      "type": "shell",
+      "command": "echo '=== AI v0 ===' && python3 -m tictactoe.main --player1 tictactoe/players/ai1_v0.py --player2 random --games 1000 && echo '' && echo '=== AI v1 ===' && python3 -m tictactoe.main --player1 tictactoe/players/ai1_v1.py --player2 random --games 1000",
+      "presentation": {
+        "reveal": "always",
+        "panel": "new"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
