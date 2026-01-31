@@ -22,7 +22,7 @@ class GameRunner:
         self.verbose = verbose
 
     def play_game(self, player1: Player, player2: Player, display_board: bool = False,
-                  clear_display: bool = True) -> int:
+                  clear_display: bool = True, save_to: str = None) -> int:
         """
         Play a single game between two players.
 
@@ -31,6 +31,7 @@ class GameRunner:
             player2: Second player (plays as 1)
             display_board: Whether to display the board after each move
             clear_display: Whether to clear terminal before displaying board
+            save_to: Optional file path to save game log
 
         Returns:
             Winner: -1 (player1), 1 (player2), or 0 (draw)
@@ -93,7 +94,102 @@ class GameRunner:
                 print(f"{winner_name} wins!")
             print(f"{'='*50}\n")
 
+        # Save game log if requested
+        if save_to:
+            self._save_game_log(game, player1, player2, save_to)
+
         return game.winner
+
+    def _save_game_log(self, game, player1: Player, player2: Player, filepath: str):
+        """
+        Save game log to a file.
+
+        Args:
+            game: TicTacToeGame instance
+            player1: First player
+            player2: Second player
+            filepath: Path to save the game log
+        """
+        import numpy as np
+
+        with open(filepath, 'w') as f:
+            f.write(f"Tic-Tac-Toe Game Log\n")
+            f.write(f"{'='*50}\n\n")
+            f.write(f"Game Settings:\n")
+            f.write(f"  Board Size: {self.size}x{self.size}\n")
+            f.write(f"  Win Length: {self.win_length if self.win_length else self.size}\n\n")
+            f.write(f"Players:\n")
+            f.write(f"  Player 1 (X): {player1.name}\n")
+            f.write(f"  Player 2 (O): {player2.name}\n\n")
+            f.write(f"{'='*50}\n\n")
+
+            symbols = {-1: 'X', 0: '.', 1: 'O'}
+
+            # Write initial empty board
+            f.write(f"Initial Board:\n\n")
+            self._write_board(f, np.zeros((self.size, self.size), dtype=int), symbols)
+            f.write(f"\n{'='*50}\n\n")
+
+            # Reconstruct and write all board states
+            board = np.zeros((self.size, self.size), dtype=int)
+            for move_num, (row, col, player) in enumerate(game.move_history, 1):
+                board[row, col] = player
+                player_name = player1.name if player == -1 else player2.name
+                symbol = 'X' if player == -1 else 'O'
+
+                f.write(f"Move {move_num}: {player_name} ({symbol}) plays at ({row}, {col})\n\n")
+                self._write_board(f, board, symbols, highlight=(row, col))
+                f.write(f"\n{'='*50}\n\n")
+
+            f.write(f"Result:\n")
+            if game.winner == 0:
+                f.write(f"  Draw\n")
+            elif game.winner == -1:
+                f.write(f"  Winner: {player1.name} (X)\n")
+            else:
+                f.write(f"  Winner: {player2.name} (O)\n")
+            f.write(f"  Total Moves: {len(game.move_history)}\n")
+
+    def _write_board(self, f, board, symbols, highlight=None):
+        """
+        Write a board state to file.
+
+        Args:
+            f: File object to write to
+            board: Board state (numpy array)
+            symbols: Dictionary mapping values to symbols
+            highlight: Optional (row, col) tuple to highlight with asterisk
+        """
+        # Print column numbers
+        f.write("   ")
+        for col in range(self.size):
+            if self.size <= 26:
+                f.write(f"{col:2} ")
+            else:
+                f.write(f"{col:3} ")
+        f.write("\n")
+
+        # Print board
+        for row in range(self.size):
+            if self.size <= 26:
+                f.write(f"{row:2} ")
+            else:
+                f.write(f"{row:3} ")
+
+            for col in range(self.size):
+                symbol = symbols[board[row, col]]
+                # Add asterisk to highlight the last move
+                if highlight and row == highlight[0] and col == highlight[1]:
+                    if self.size <= 26:
+                        f.write(f"*{symbol}*")
+                    else:
+                        f.write(f"*{symbol}* ")
+                else:
+                    if self.size <= 26:
+                        f.write(f" {symbol} ")
+                    else:
+                        f.write(f" {symbol}  ")
+            f.write("\n")
 
     def play_tournament(self, player1: Player, player2: Player, num_games: int) -> dict:
         """

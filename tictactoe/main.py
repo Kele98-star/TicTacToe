@@ -122,6 +122,8 @@ Examples:
                         help='Custom name for player 1')
     parser.add_argument('--name2', type=str, default=None,
                         help='Custom name for player 2')
+    parser.add_argument('--save-to', type=str, default=None,
+                        help='Save game log to specified file')
 
     args = parser.parse_args()
 
@@ -137,7 +139,7 @@ Examples:
         if args.games == 1:
             # Single game
             winner = runner.play_game(player1, player2, display_board=args.display or verbose,
-                                     clear_display=not args.no_clear)
+                                     clear_display=not args.no_clear, save_to=args.save_to)
 
             if verbose:
                 if winner == -1:
