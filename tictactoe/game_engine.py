@@ -112,7 +112,8 @@ class TicTacToeGame:
         latest_move = self.move_history[-1][:2] if self.move_history else None
 
         # Print column numbers
-        print(" ", end="")
+        label_width = 2 if self.size <= 26 else 3
+        print(" " * (label_width + 1), end="")
         for col in range(self.size):
             if self.size <= 26:
                 print(f"{col:2}", end=" ")

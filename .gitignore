@@ -5,4 +5,5 @@ __pycache__/
 
 
 game_log.txt
-tictactoe/players/ai_v0.py
+tictactoe/players/*
+.vscode/
