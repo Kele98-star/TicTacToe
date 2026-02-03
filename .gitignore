@@ -6,4 +6,11 @@ __pycache__/
 
 game_log.txt
 tictactoe/players/*
-.vscode/
+# .vscode/
+test.py
+
+# Analytics output files
+ratings.json
+heatmap.png
+*.heatmap.png
+test_heatmap.png

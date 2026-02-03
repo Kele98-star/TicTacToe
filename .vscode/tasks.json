@@ -1,0 +1,126 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "compare versions",
+            "type": "shell",
+            "command": "python3 -m tictactoe.main --player1 tictactoe/players/old.py --player2 tictactoe/players/new.py --games 1000 --win-length 5 --size 15",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+
+        {
+            "label": "testing",
+            "type": "shell",
+            "command": "python3 -m tictactoe.main --player1 tictactoe/players/old.py --player2 tictactoe/players/new.py --games 1 --win-length 4 --size 6 --no-clear",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+
+        {
+            "label": "display",
+            "type": "shell",
+            "command": "python3 -m tictactoe.main --player1 tictactoe/players/old.py --player2 tictactoe/players/new.py --display --no-clear --win-length 5 --size 10",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+
+        {
+            "label": "save to game_log",
+            "type": "shell",
+            "command": "python3 -m tictactoe.main --player1 tictactoe/players/old.py --player2 tictactoe/players/new.py --display --no-clear --win-length 5 --size 10 --save-to game_log.txt",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+
+        {
+            "label": "tournament with ELO",
+            "type": "shell",
+            "command": "python3 -m tictactoe.main --player1 tictactoe/players/old.py --player2 tictactoe/players/new.py --games 100 --win-length 5 --size 15 --elo",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+
+        {
+            "label": "tournament with heatmap",
+            "type": "shell",
+            "command": "python3 -m tictactoe.main --player1 tictactoe/players/old.py --player2 tictactoe/players/new.py --games 100 --win-length 5 --size 10 --heatmap",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+
+        {
+            "label": "full analytics",
+            "type": "shell",
+            "command": "python3 -m tictactoe.main --player1 tictactoe/players/old.py --player2 tictactoe/players/new.py --games 100 --win-length 5 --size 10 --elo --heatmap",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+
+        {
+            "label": "view leaderboard",
+            "type": "shell",
+            "command": "python3 -m tictactoe.main --leaderboard",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        }
+    ]
+}

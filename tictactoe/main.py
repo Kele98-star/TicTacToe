@@ -72,9 +72,9 @@ Examples:
   python -m tictactoe.main --player1 ai1.py --player2 ai2.py --games 1000 --size 100
         """
     )
-    parser.add_argument('--player1', required=True,
+    parser.add_argument('--player1', default=None,
                         help='Player 1: human, random, minimax, or path to custom player file')
-    parser.add_argument('--player2', required=True,
+    parser.add_argument('--player2', default=None,
                         help='Player 2: human, random, minimax, or path to custom player file')
     parser.add_argument('--games', type=int, default=1,
                         help='Number of games to play (default: 1)')
@@ -95,7 +95,34 @@ Examples:
     parser.add_argument('--save-to', type=str, default=None,
                         help='Save game log to specified file')
 
+    # Analytics flags
+    parser.add_argument('--timeout', type=float, default=None,
+                        help='Max seconds per move (disqualify on timeout)')
+    parser.add_argument('--elo', action='store_true',
+                        help='Enable ELO rating tracking')
+    parser.add_argument('--elo-file', type=str, default='ratings.json',
+                        help='Path to ELO ratings file (default: ratings.json)')
+    parser.add_argument('--heatmap', action='store_true',
+                        help='Generate move heat map after tournament')
+    parser.add_argument('--heatmap-output', type=str, default='heatmap.png',
+                        help='Heat map output path (default: heatmap.png)')
+    parser.add_argument('--no-stats', action='store_true',
+                        help='Disable detailed statistics output')
+    parser.add_argument('--leaderboard', action='store_true',
+                        help='Show ELO leaderboard and exit')
+
     args = parser.parse_args()
+
+    # Handle leaderboard display
+    if args.leaderboard:
+        from tictactoe.rating import EloRating
+        elo = EloRating(args.elo_file)
+        elo.print_leaderboard()
+        return
+
+    # Validate required arguments for game play
+    if not args.player1 or not args.player2:
+        parser.error("--player1 and --player2 are required when playing games")
 
     try:
         player1 = create_player(args.player1, -1, args.name1)
@@ -104,13 +131,34 @@ Examples:
         verbose = not args.quiet
         runner = GameRunner(size=args.size, win_length=args.win_length, verbose=verbose)
 
+        # Initialize analytics systems
+        elo_system = None
+        heatmap = None
+
+        if args.elo:
+            from tictactoe.rating import EloRating
+            elo_system = EloRating(args.elo_file)
+
+        if args.heatmap:
+            from tictactoe.visualization import HeatMapGenerator
+            heatmap = HeatMapGenerator(args.size, args.heatmap_output)
+
         if args.games == 1:
+            # Single game mode
+            from tictactoe.game_runner import GameStats
+            stats = GameStats() if not args.no_stats else None
+
             winner = runner.play_game(
                 player1, player2,
                 display_board=args.display or verbose,
                 clear_display=not args.no_clear,
-                save_to=args.save_to
+                save_to=args.save_to,
+                stats=stats,
+                timeout=args.timeout,
+                heatmap=heatmap,
+                elo_system=elo_system
             )
+
             if verbose:
                 if winner == -1:
                     print(f"\n{player1.name} wins!")
@@ -118,8 +166,29 @@ Examples:
                     print(f"\n{player2.name} wins!")
                 else:
                     print("\nGame ended in a draw!")
+
+                # Show timing for single game
+                if stats and not args.no_stats:
+                    stats.print_summary(player1.name, player2.name)
+
+                # Show ELO changes for single game
+                if elo_system:
+                    print("\nELO Ratings updated.")
+                    elo_system.save()
+
+            # Generate heatmap for single game
+            if heatmap:
+                heatmap.generate()
         else:
-            results = runner.play_tournament(player1, player2, args.games)
+            # Tournament mode
+            results = runner.play_tournament(
+                player1, player2, args.games,
+                timeout=args.timeout,
+                elo_system=elo_system,
+                heatmap=heatmap,
+                show_stats=not args.no_stats
+            )
+
             if not verbose:
                 print(f"{player1.name}: {results['player1_wins']}")
                 print(f"{player2.name}: {results['player2_wins']}")
