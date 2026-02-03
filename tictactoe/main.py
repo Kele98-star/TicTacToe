@@ -15,6 +15,8 @@ from tictactoe.human_player import HumanPlayer
 from tictactoe.players.random_player import RandomPlayer
 from tictactoe.players.minimax_player import MinimaxPlayer
 
+DEFAULT_TOURNAMENT_CONFIG = "tournament_participants.json"
+
 
 def load_custom_player(filepath: str, player_id: int):
     """Load custom player from Python file containing Player subclass."""
@@ -152,9 +154,15 @@ Examples:
     parser.add_argument('--leaderboard', action='store_true',
                         help='Show ELO leaderboard and exit')
     parser.add_argument('--tournament-config', type=str, default=None,
-                        help='Path to JSON file with tournament participants')
+                        help=f'Path to JSON file with tournament participants (default: {DEFAULT_TOURNAMENT_CONFIG} when no players are specified)')
 
     args = parser.parse_args()
+
+    # Default to repository tournament config when no players are specified
+    if args.tournament_config is None and not args.player1 and not args.player2:
+        default_config_path = Path(DEFAULT_TOURNAMENT_CONFIG)
+        if default_config_path.exists():
+            args.tournament_config = str(default_config_path)
 
     # Handle leaderboard display
     if args.leaderboard:

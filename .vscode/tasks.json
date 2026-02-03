@@ -21,7 +21,7 @@
         {
             "label": "testing",
             "type": "shell",
-            "command": "python3 -m tictactoe.main --player1 tictactoe/players/old.py --player2 tictactoe/players/new.py --games 1 --win-length 4 --size 6 --no-clear",
+            "command": "python3 -m tictactoe.main --player1 tictactoe/players/old.py --player2 tictactoe/players/new.py --games 1 --win-length 3 --size 4 --no-clear",
             "group": {
                 "kind": "build",
                 "isDefault": false
@@ -66,7 +66,7 @@
         {
             "label": "tournament with ELO",
             "type": "shell",
-            "command": "python3 -m tictactoe.main --player1 tictactoe/players/old.py --player2 tictactoe/players/new.py --games 100 --win-length 5 --size 15 --elo",
+            "command": "python3 -m tictactoe.main --tournament-config tournament_participants.json --games 100 --win-length 5 --size 15 --elo",
             "group": {
                 "kind": "build",
                 "isDefault": false
@@ -81,7 +81,7 @@
         {
             "label": "tournament with heatmap",
             "type": "shell",
-            "command": "python3 -m tictactoe.main --player1 tictactoe/players/old.py --player2 tictactoe/players/new.py --games 100 --win-length 5 --size 10 --heatmap",
+            "command": "python3 -m tictactoe.main --tournament-config tournament_participants.json --games 100 --win-length 5 --size 10 --heatmap",
             "group": {
                 "kind": "build",
                 "isDefault": false
@@ -96,7 +96,7 @@
         {
             "label": "full analytics",
             "type": "shell",
-            "command": "python3 -m tictactoe.main --player1 tictactoe/players/old.py --player2 tictactoe/players/new.py --games 100 --win-length 5 --size 10 --elo --heatmap",
+            "command": "python3 -m tictactoe.main --tournament-config tournament_participants.json --games 100 --win-length 5 --size 10 --elo --heatmap",
             "group": {
                 "kind": "build",
                 "isDefault": false
