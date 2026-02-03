@@ -6,7 +6,7 @@
         {
             "label": "compare versions",
             "type": "shell",
-            "command": "python3 -m tictactoe.main --player1 tictactoe/players/old.py --player2 tictactoe/players/new.py --games 1000 --win-length 5 --size 15",
+            "command": "python3 -m tictactoe.main --player1 tictactoe/players/old.py --player2 tictactoe/players/new.py --games 200 --win-length 5 --size 15",
             "group": {
                 "kind": "build",
                 "isDefault": true

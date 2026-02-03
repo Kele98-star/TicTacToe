@@ -109,6 +109,109 @@ class GameStats:
                 print(f"    avg={ts['avg']:.4f}s, min={ts['min']:.4f}s, max={ts['max']:.4f}s, total={ts['total']:.2f}s")
 
 
+class RoundRobinStats:
+    """Aggregate statistics across all matchups in a round-robin tournament."""
+
+    def __init__(self):
+        self.matchup_results = {}  # (p1_name, p2_name) -> {'p1_wins': X, 'p2_wins': Y, 'draws': Z}
+        self.player_totals = {}    # player_name -> {'wins': X, 'losses': Y, 'draws': Z, 'games': N}
+        self.total_games = 0
+
+    def record_matchup(self, p1_name: str, p2_name: str, p1_wins: int, p2_wins: int, draws: int):
+        """Record results of a matchup between two players."""
+        self.matchup_results[(p1_name, p2_name)] = {
+            'p1_wins': p1_wins,
+            'p2_wins': p2_wins,
+            'draws': draws
+        }
+
+        total = p1_wins + p2_wins + draws
+        self.total_games += total
+
+        # Update player totals
+        for name in [p1_name, p2_name]:
+            if name not in self.player_totals:
+                self.player_totals[name] = {'wins': 0, 'losses': 0, 'draws': 0, 'games': 0}
+
+        self.player_totals[p1_name]['wins'] += p1_wins
+        self.player_totals[p1_name]['losses'] += p2_wins
+        self.player_totals[p1_name]['draws'] += draws
+        self.player_totals[p1_name]['games'] += total
+
+        self.player_totals[p2_name]['wins'] += p2_wins
+        self.player_totals[p2_name]['losses'] += p1_wins
+        self.player_totals[p2_name]['draws'] += draws
+        self.player_totals[p2_name]['games'] += total
+
+    def get_standings(self) -> list:
+        """Get player standings sorted by win rate."""
+        standings = []
+        for name, totals in self.player_totals.items():
+            win_rate = totals['wins'] / totals['games'] * 100 if totals['games'] > 0 else 0
+            standings.append({
+                'name': name,
+                'wins': totals['wins'],
+                'losses': totals['losses'],
+                'draws': totals['draws'],
+                'games': totals['games'],
+                'win_rate': win_rate
+            })
+        return sorted(standings, key=lambda x: x['win_rate'], reverse=True)
+
+    def print_summary(self, elo_system=None):
+        """Print tournament summary with standings and matchup grid."""
+        print("\n" + "=" * 60)
+        print("ROUND-ROBIN TOURNAMENT RESULTS")
+        print("=" * 60)
+
+        standings = self.get_standings()
+
+        # Print standings table
+        print(f"\n{'Rank':<6}{'Player':<20}{'W':<8}{'L':<8}{'D':<8}{'Win %':<10}")
+        print("-" * 60)
+        for rank, s in enumerate(standings, 1):
+            print(f"{rank:<6}{s['name']:<20}{s['wins']:<8}{s['losses']:<8}{s['draws']:<8}{s['win_rate']:.1f}%")
+
+        # Print matchup matrix
+        players = [s['name'] for s in standings]
+        print(f"\n{'Matchup Results Matrix':^60}")
+        print("-" * 60)
+
+        # Header row
+        header = "vs".ljust(15) + "".join(p[:10].ljust(12) for p in players)
+        print(header)
+
+        for p1 in players:
+            row = p1[:15].ljust(15)
+            for p2 in players:
+                if p1 == p2:
+                    row += "-".center(12)
+                else:
+                    key = (p1, p2) if (p1, p2) in self.matchup_results else (p2, p1)
+                    if key in self.matchup_results:
+                        result = self.matchup_results[key]
+                        if key[0] == p1:
+                            score = f"{result['p1_wins']}-{result['p2_wins']}"
+                        else:
+                            score = f"{result['p2_wins']}-{result['p1_wins']}"
+                        row += score.center(12)
+                    else:
+                        row += "-".center(12)
+            print(row)
+
+        # Print ELO standings if available
+        if elo_system:
+            print("\n" + "-" * 60)
+            print("ELO Ratings:")
+            print("-" * 60)
+            ratings = [(name, elo_system.get_rating(name)) for name in players]
+            ratings.sort(key=lambda x: x[1], reverse=True)
+            for rank, (name, rating) in enumerate(ratings, 1):
+                print(f"  {rank}. {name}: {rating:.0f}")
+
+        print("=" * 60)
+
+
 class GameRunner:
     """
     Orchestrates matches between players.
@@ -405,3 +508,78 @@ class GameRunner:
             heatmap.generate()
 
         return results
+
+    def play_round_robin_tournament(self, participants_config: list, games_per_matchup: int,
+                                     create_player_func, timeout: float = None,
+                                     elo_system=None, heatmap=None,
+                                     show_stats: bool = True) -> dict:
+        """
+        Play a round-robin tournament where each pair of participants plays against each other.
+
+        Args:
+            participants_config: List of participant configuration dicts
+            games_per_matchup: Number of games each pair plays
+            create_player_func: Function to create a player from config entry
+            timeout: Optional max seconds per move
+            elo_system: Optional EloRating system
+            heatmap: Optional HeatMapGenerator
+            show_stats: Whether to show detailed statistics
+
+        Returns:
+            Results dictionary with standings and matchup details
+        """
+        from itertools import combinations
+
+        num_participants = len(participants_config)
+        num_matchups = num_participants * (num_participants - 1) // 2
+
+        if self.verbose:
+            print(f"\n{'='*60}")
+            print(f"ROUND-ROBIN TOURNAMENT")
+            print(f"{'='*60}")
+            print(f"Participants: {num_participants}")
+            print(f"Total matchups: {num_matchups}")
+            print(f"Games per matchup: {games_per_matchup}")
+            print(f"Total games: {num_matchups * games_per_matchup}")
+            print(f"Board size: {self.size}x{self.size}")
+            print(f"Win length: {self.win_length or self.size}")
+            if timeout:
+                print(f"Timeout: {timeout}s per move")
+            print(f"{'='*60}\n")
+
+        rr_stats = RoundRobinStats()
+        matchup_num = 0
+
+        # Generate all pairings
+        for p1_config, p2_config in combinations(participants_config, 2):
+            matchup_num += 1
+
+            # Create fresh player instances for each matchup
+            player1 = create_player_func(p1_config, -1)
+            player2 = create_player_func(p2_config, 1)
+
+            if self.verbose:
+                print(f"\n--- Matchup {matchup_num}/{num_matchups}: {player1.name} vs {player2.name} ---")
+
+            # Use existing play_tournament for each matchup
+            results = self.play_tournament(
+                player1, player2, games_per_matchup,
+                timeout=timeout, elo_system=elo_system,
+                heatmap=heatmap, show_stats=False  # Defer stats to aggregate summary
+            )
+
+            # Record to round-robin stats
+            rr_stats.record_matchup(
+                player1.name, player2.name,
+                results['player1_wins'], results['player2_wins'], results['draws']
+            )
+
+        # Print aggregate summary
+        if self.verbose and show_stats:
+            rr_stats.print_summary(elo_system)
+
+        return {
+            'standings': rr_stats.get_standings(),
+            'matchups': rr_stats.matchup_results,
+            'total_games': rr_stats.total_games
+        }

@@ -1,0 +1,10 @@
+{
+  "tournament_name": "AI Championship",
+  "games_per_matchup": 100,
+  "participants": [
+    { "name": "Minimax", "type": "minimax" },
+    { "name": "Random", "type": "random" },
+    { "name": "Old Strategy", "type": "custom", "file": "tictactoe/players/old.py" },
+    { "name": "New Strategy", "type": "custom", "file": "tictactoe/players/new.py" }
+  ]
+}

@@ -6,6 +6,7 @@ Supports AI vs AI, Human vs AI, and Human vs Human matches.
 
 import argparse
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
@@ -60,6 +61,46 @@ def create_player(player_type: str, player_id: int, player_name: str = None):
     return load_custom_player(player_type, player_id)
 
 
+def load_tournament_config(filepath: str) -> dict:
+    """Load tournament configuration from JSON file."""
+    path = Path(filepath)
+    if not path.exists():
+        raise FileNotFoundError(f"Tournament config file not found: {filepath}")
+
+    with open(path, 'r') as f:
+        config = json.load(f)
+
+    # Validate required fields
+    if 'participants' not in config:
+        raise ValueError("Tournament config must contain 'participants' array")
+
+    if len(config['participants']) < 2:
+        raise ValueError("Tournament requires at least 2 participants")
+
+    for i, p in enumerate(config['participants']):
+        if 'name' not in p:
+            raise ValueError(f"Participant {i} missing required 'name' field")
+        if 'type' not in p:
+            raise ValueError(f"Participant {i} missing required 'type' field")
+        if p['type'] == 'custom' and 'file' not in p:
+            raise ValueError(f"Participant '{p['name']}' has type 'custom' but missing 'file' field")
+
+    return config
+
+
+def create_player_from_config(participant: dict, player_id: int):
+    """Create a player instance from a tournament config participant entry."""
+    ptype = participant['type'].lower()
+    name = participant['name']
+
+    if ptype == 'custom':
+        player = load_custom_player(participant['file'], player_id)
+        player.name = name  # Override with config name
+        return player
+    else:
+        return create_player(ptype, player_id, name)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description='Tic-Tac-Toe Game Runner',
@@ -110,6 +151,8 @@ Examples:
                         help='Disable detailed statistics output')
     parser.add_argument('--leaderboard', action='store_true',
                         help='Show ELO leaderboard and exit')
+    parser.add_argument('--tournament-config', type=str, default=None,
+                        help='Path to JSON file with tournament participants')
 
     args = parser.parse_args()
 
@@ -119,6 +162,55 @@ Examples:
         elo = EloRating(args.elo_file)
         elo.print_leaderboard()
         return
+
+    # Handle multi-participant tournament from config file
+    if args.tournament_config:
+        if args.player1 or args.player2:
+            parser.error("--tournament-config cannot be used with --player1/--player2")
+
+        try:
+            config = load_tournament_config(args.tournament_config)
+
+            verbose = not args.quiet
+            runner = GameRunner(size=args.size, win_length=args.win_length, verbose=verbose)
+
+            # Initialize analytics systems
+            elo_system = None
+            heatmap = None
+
+            if args.elo:
+                from tictactoe.rating import EloRating
+                elo_system = EloRating(args.elo_file)
+
+            if args.heatmap:
+                from tictactoe.visualization import HeatMapGenerator
+                heatmap = HeatMapGenerator(args.size, args.heatmap_output)
+
+            # Determine games per matchup
+            games_per_matchup = args.games if args.games > 1 else config.get('games_per_matchup', 10)
+
+            # Run round-robin tournament
+            runner.play_round_robin_tournament(
+                participants_config=config['participants'],
+                games_per_matchup=games_per_matchup,
+                create_player_func=create_player_from_config,
+                timeout=args.timeout,
+                elo_system=elo_system,
+                heatmap=heatmap,
+                show_stats=not args.no_stats
+            )
+
+            # Save ELO (heatmap is already generated in play_round_robin_tournament via play_tournament)
+            if elo_system:
+                elo_system.save()
+
+            return
+        except KeyboardInterrupt:
+            print("\n\nTournament interrupted by user.")
+            sys.exit(0)
+        except Exception as e:
+            print(f"Error: {e}", file=sys.stderr)
+            sys.exit(1)
 
     # Validate required arguments for game play
     if not args.player1 or not args.player2:
