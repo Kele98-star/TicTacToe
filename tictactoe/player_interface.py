@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple
+from typing import List, Tuple, Union, TYPE_CHECKING
 
 import numpy as np
+
+if TYPE_CHECKING:
+    from tictactoe.game_engine import ImmutableBoard
 
 
 class Player(ABC):
@@ -19,16 +22,22 @@ class Player(ABC):
         self.player_id = player_id
 
     @abstractmethod
-    def get_move(self, board: np.ndarray, valid_moves: List[Tuple[int, int]]) -> Tuple[int, int]:
+    def get_move(self, board: Union[np.ndarray, "ImmutableBoard"], valid_moves: Tuple[Tuple[int, int], ...]) -> Tuple[int, int]:
         """
         Get the player's move.
 
         Args:
-            board: Current board state (numpy array with -1, 0, 1).
-            valid_moves: List of valid moves as (row, col) tuples.
+            board: Read-only board state (ImmutableBoard with -1, 0, 1).
+                   Use board.copy() to get a mutable numpy array if needed.
+            valid_moves: Immutable tuple of valid moves as (row, col) tuples.
 
         Returns:
-            (row, col) representing the chosen move.
+            (row, col) representing the chosen move. Must return exactly one move.
+
+        Note:
+            - The board is read-only; attempting to modify it will raise ValueError.
+            - Players must return exactly one valid move.
+            - Returning invalid moves or invalid formats results in a forfeit.
         """
 
     def game_over(self, winner: int) -> None:

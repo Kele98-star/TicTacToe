@@ -4,6 +4,44 @@ import os
 def clear():
     os.system("cls" if os.name == "nt" else "clear")
 
+
+class ImmutableBoard:
+    """
+    A read-only wrapper around a numpy board array.
+    Prevents players from modifying the board state.
+    """
+
+    def __init__(self, board: np.ndarray):
+        """Wrap a board array as read-only."""
+        self._board = board.copy()
+        self._board.flags.writeable = False
+
+    def __getitem__(self, key):
+        """Allow reading board values via indexing."""
+        return self._board[key]
+
+    def __setitem__(self, key, value):
+        """Raise error on any attempt to modify the board."""
+        raise ValueError("Board is read-only. Players cannot modify the board.")
+
+    @property
+    def shape(self):
+        """Return the board shape."""
+        return self._board.shape
+
+    def copy(self) -> np.ndarray:
+        """Return a mutable copy for player's internal use."""
+        return self._board.copy()
+
+    def __array__(self, dtype=None):
+        """Support np.array() conversion - returns a copy."""
+        if dtype is None:
+            return self._board.copy()
+        return self._board.astype(dtype).copy()
+
+    def __repr__(self):
+        return f"ImmutableBoard({self._board})"
+
 class TicTacToeGame:
     """
     Core game engine for tic-tac-toe.
@@ -102,6 +140,10 @@ class TicTacToeGame:
     def get_board_copy(self) -> np.ndarray:
         """Return a copy of the current board state."""
         return self.board.copy()
+
+    def get_immutable_board(self) -> ImmutableBoard:
+        """Return a read-only view of the board for player use."""
+        return ImmutableBoard(self.board)
 
     def display(self, clear_screen: bool = True):
         """Display the board in the terminal."""

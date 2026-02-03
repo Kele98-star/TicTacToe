@@ -267,10 +267,27 @@ class GameRunner:
             if not valid_moves:
                 break
 
+            # Convert to tuple of tuples to make it immutable
+            valid_moves_immutable = tuple(tuple(m) for m in valid_moves)
+
             try:
                 start_time = time.perf_counter()
-                row, col = current_player_obj.get_move(game.get_board_copy(), valid_moves)
+                move = current_player_obj.get_move(game.get_immutable_board(), valid_moves_immutable)
                 elapsed = time.perf_counter() - start_time
+
+                # Validate move format: must be a tuple/list of exactly 2 integers
+                if not isinstance(move, (tuple, list)) or len(move) != 2:
+                    if self.verbose:
+                        print(f"Invalid move format by {current_player_obj.name}: expected (row, col), got {move}")
+                    return -game.current_player  # Opponent wins on invalid move format
+
+                row, col = move
+                if not isinstance(row, (int, np.integer)) or not isinstance(col, (int, np.integer)):
+                    if self.verbose:
+                        print(f"Invalid move type by {current_player_obj.name}: row and col must be integers, got ({type(row).__name__}, {type(col).__name__})")
+                    return -game.current_player  # Opponent wins on invalid type
+
+                row, col = int(row), int(col)
 
                 # Record timing
                 if stats:
