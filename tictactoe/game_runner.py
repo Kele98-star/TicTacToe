@@ -15,11 +15,12 @@ class TimingStats:
     def get_summary(self) -> dict:
         if not self.move_times:
             return {"avg": 0, "min": 0, "max": 0, "total": 0, "moves": 0}
+        total = sum(self.move_times)
         return {
-            "avg": sum(self.move_times) / len(self.move_times),
+            "avg": total / len(self.move_times),
             "min": min(self.move_times),
             "max": max(self.move_times),
-            "total": sum(self.move_times),
+            "total": total,
             "moves": len(self.move_times),
         }
 
@@ -251,6 +252,9 @@ class GameRunner:
         game = TicTacToeGame(size=self.size, win_length=self.win_length)
         players = {-1: player1, 1: player2}
         move_history_for_heatmap = []  # Track moves for heatmap
+        # Ensure players can access the actual win length for this game
+        player1.win_length = game.win_length
+        player2.win_length = game.win_length
 
         if self.verbose and display_board:
             if clear_display:
@@ -267,8 +271,8 @@ class GameRunner:
             if not valid_moves:
                 break
 
-            # Convert to tuple of tuples to make it immutable
-            valid_moves_immutable = tuple(tuple(m) for m in valid_moves)
+            # Convert to tuple to make it immutable
+            valid_moves_immutable = tuple(valid_moves)
 
             try:
                 start_time = time.perf_counter()
@@ -465,6 +469,7 @@ class GameRunner:
                 print(f"Timeout: {timeout}s per move")
             print("-" * 50)
 
+        progress_interval = max(1, num_games // 10)
         for game_num in range(num_games):
             p1_goes_first = (game_num % 2 == 0)
 
@@ -490,7 +495,7 @@ class GameRunner:
             else:
                 results['draws'] += 1
 
-            if self.verbose and (game_num + 1) % max(1, num_games // 10) == 0:
+            if self.verbose and (game_num + 1) % progress_interval == 0:
                 print(f"Progress: {game_num + 1}/{num_games} games completed")
 
         if self.verbose:
@@ -536,7 +541,7 @@ class GameRunner:
         Args:
             participants_config: List of participant configuration dicts
             games_per_matchup: Number of games each pair plays
-            create_player_func: Function to create a player from config entry
+            create_player_func: Function to create a player from config entry (participant, player_id, win_length)
             timeout: Optional max seconds per move
             elo_system: Optional EloRating system
             heatmap: Optional HeatMapGenerator
@@ -567,13 +572,15 @@ class GameRunner:
         rr_stats = RoundRobinStats()
         matchup_num = 0
 
+        effective_win_length = TicTacToeGame(size=self.size, win_length=self.win_length).win_length
+
         # Generate all pairings
         for p1_config, p2_config in combinations(participants_config, 2):
             matchup_num += 1
 
             # Create fresh player instances for each matchup
-            player1 = create_player_func(p1_config, -1)
-            player2 = create_player_func(p2_config, 1)
+            player1 = create_player_func(p1_config, -1, effective_win_length)
+            player2 = create_player_func(p2_config, 1, effective_win_length)
 
             if self.verbose:
                 print(f"\n--- Matchup {matchup_num}/{num_matchups}: {player1.name} vs {player2.name} ---")

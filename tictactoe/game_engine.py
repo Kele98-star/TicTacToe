@@ -1,9 +1,9 @@
-import numpy as np
 import os
 
-def clear():
-    os.system("cls" if os.name == "nt" else "clear")
+import numpy as np
 
+def clear() -> None:
+    os.system("cls" if os.name == "nt" else "clear")
 
 class ImmutableBoard:
     """
@@ -50,6 +50,8 @@ class TicTacToeGame:
      0: Empty
      1: Player 2
     """
+    _DIRECTIONS = ((0, 1), (1, 0), (1, 1), (1, -1))
+
     def __init__(self, size: int = 100, win_length: int = None):
         """
         Initialize the game.
@@ -77,7 +79,7 @@ class TicTacToeGame:
 
     def get_valid_moves(self) -> list:
         """Return list of valid moves as (row, col) tuples."""
-        return list(zip(*np.where(self.board == 0)))
+        return [tuple(pos) for pos in np.argwhere(self.board == 0)]
 
     def make_move(self, row: int, col: int) -> bool:
         """
@@ -112,8 +114,7 @@ class TicTacToeGame:
     def _check_win(self, row: int, col: int) -> bool:
         """Check if the last move at (row, col) resulted in a win."""
         player = self.board[row, col]
-        directions = [(0, 1), (1, 0), (1, 1), (1, -1)]
-        for dr, dc in directions:
+        for dr, dc in self._DIRECTIONS:
             if self._check_line(row, col, dr, dc, player):
                 return True
         return False
@@ -152,23 +153,19 @@ class TicTacToeGame:
 
         symbols = {-1: 'X', 0: '.', 1: 'O'}
         latest_move = self.move_history[-1][:2] if self.move_history else None
+        label_width = 2 if self.size <= 26 else 3
+        col_fmt = f"{{:{label_width}}}"
+        row_fmt = f"{{:{label_width}}} "
 
         # Print column numbers
-        label_width = 2 if self.size <= 26 else 3
         print(" " * (label_width + 1), end="")
         for col in range(self.size):
-            if self.size <= 26:
-                print(f"{col:2}", end=" ")
-            else:
-                print(f"{col:3}", end=" ")
+            print(col_fmt.format(col), end=" ")
         print()
 
         # Print board
         for row in range(self.size):
-            if self.size <= 26:
-                print(f"{row:2} ", end="")
-            else:
-                print(f"{row:3} ", end="")
+            print(row_fmt.format(row), end="")
             for col in range(self.size):
                 symbol = symbols[self.board[row, col]]
                 if latest_move and (row, col) == latest_move:

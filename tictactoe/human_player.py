@@ -1,4 +1,3 @@
-import numpy as np
 from typing import Tuple
 from tictactoe.player_interface import Player
 
@@ -6,7 +5,7 @@ from tictactoe.player_interface import Player
 class HumanPlayer(Player):
     """Terminal-based human player."""
 
-    def get_move(self, board: np.ndarray, valid_moves: list) -> Tuple[int, int]:
+    def get_move(self, board, valid_moves: list) -> Tuple[int, int]:
         """
         Prompt the user for a move until a valid (row, col) is provided.
         """

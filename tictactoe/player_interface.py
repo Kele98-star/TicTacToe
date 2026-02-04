@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import List, Tuple, Union, TYPE_CHECKING
+from typing import Tuple, Union, TYPE_CHECKING
 
 import numpy as np
 
@@ -10,16 +10,18 @@ if TYPE_CHECKING:
 class Player(ABC):
     """Abstract base class for all players (AI and human)."""
 
-    def __init__(self, name: str, player_id: int):
+    def __init__(self, name: str, player_id: int, win_length: int | None = None):
         """
         Initialize player.
 
         Args:
             name: Player's name.
             player_id: Player identifier (-1 or 1).
+            win_length: Number in a row needed to win (set by GameRunner if not provided).
         """
         self.name = name
         self.player_id = player_id
+        self.win_length = win_length
 
     @abstractmethod
     def get_move(self, board: Union[np.ndarray, "ImmutableBoard"], valid_moves: Tuple[Tuple[int, int], ...]) -> Tuple[int, int]:

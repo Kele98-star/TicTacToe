@@ -6,7 +6,7 @@
         {
             "label": "compare versions",
             "type": "shell",
-            "command": "python3 -m tictactoe.main --player1 tictactoe/players/old.py --player2 tictactoe/players/new.py --games 200 --win-length 5 --size 15",
+            "command": "python3 -m tictactoe.main --player1 tictactoe/players/old.py --player2 tictactoe/players/new.py --games 500 --win-length 5 --size 12",
             "group": {
                 "kind": "build",
                 "isDefault": true
@@ -21,7 +21,7 @@
         {
             "label": "testing",
             "type": "shell",
-            "command": "python3 -m tictactoe.main --player1 tictactoe/players/old.py --player2 tictactoe/players/new.py --games 1 --win-length 3 --size 4 --no-clear",
+            "command": "python3 -m tictactoe.main --player1 tictactoe/players/old.py --player2 tictactoe/players/new.py --games 1 --win-length 4 --size 6 --no-clear",
             "group": {
                 "kind": "build",
                 "isDefault": false
@@ -112,6 +112,21 @@
             "label": "view leaderboard",
             "type": "shell",
             "command": "python3 -m tictactoe.main --leaderboard",
+            "group": {
+                "kind": "build",
+                "isDefault": false
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "new"
+            },
+            "problemMatcher": []
+        },
+       
+        {
+            "label": "test",
+            "type": "shell",
+            "command": "python3 test.py",
             "group": {
                 "kind": "build",
                 "isDefault": false

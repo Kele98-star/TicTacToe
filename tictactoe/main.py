@@ -16,9 +16,19 @@ from tictactoe.players.random_player import RandomPlayer
 from tictactoe.players.minimax_player import MinimaxPlayer
 
 DEFAULT_TOURNAMENT_CONFIG = "tournament_participants.json"
+PLAYER_TYPE_TO_CLASS = {
+    'human': HumanPlayer,
+    'random': RandomPlayer,
+    'minimax': MinimaxPlayer,
+}
+DEFAULT_PLAYER_NAMES = {
+    'human': "Human Player {num}",
+    'random': "Random AI",
+    'minimax': "Minimax AI",
+}
 
 
-def load_custom_player(filepath: str, player_id: int):
+def load_custom_player(filepath: str, player_id: int, win_length: int | None):
     """Load custom player from Python file containing Player subclass."""
     path = Path(filepath)
     if not path.exists():
@@ -40,27 +50,20 @@ def load_custom_player(filepath: str, player_id: int):
         raise ValueError(f"No Player subclass found in {filepath}")
 
     PlayerClass = player_classes[0]
-    return PlayerClass(name=path.stem, player_id=player_id)
+    return PlayerClass(name=path.stem, player_id=player_id, win_length=win_length)
 
 
-def create_player(player_type: str, player_id: int, player_name: str = None):
+def create_player(player_type: str, player_id: int, player_name: str = None, win_length: int | None = None):
     """Create player instance by type."""
-    type_to_class = {
-        'human': HumanPlayer,
-        'random': RandomPlayer,
-        'minimax': MinimaxPlayer,
-    }
     lowered = player_type.lower()
-    if lowered in type_to_class:
-        cls = type_to_class[lowered]
-        default_names = {
-            'human': f"Human Player {1 if player_id == -1 else 2}",
-            'random': "Random AI",
-            'minimax': "Minimax AI",
-        }
-        name = player_name or default_names.get(lowered)
-        return cls(name=name, player_id=player_id)
-    return load_custom_player(player_type, player_id)
+    if lowered in PLAYER_TYPE_TO_CLASS:
+        cls = PLAYER_TYPE_TO_CLASS[lowered]
+        default_name = DEFAULT_PLAYER_NAMES[lowered]
+        if lowered == 'human':
+            default_name = default_name.format(num=1 if player_id == -1 else 2)
+        name = player_name or default_name
+        return cls(name=name, player_id=player_id, win_length=win_length)
+    return load_custom_player(player_type, player_id, win_length)
 
 
 def load_tournament_config(filepath: str) -> dict:
@@ -90,17 +93,21 @@ def load_tournament_config(filepath: str) -> dict:
     return config
 
 
-def create_player_from_config(participant: dict, player_id: int):
+def create_player_from_config(participant: dict, player_id: int, win_length: int | None):
     """Create a player instance from a tournament config participant entry."""
     ptype = participant['type'].lower()
     name = participant['name']
 
     if ptype == 'custom':
-        player = load_custom_player(participant['file'], player_id)
+        player = load_custom_player(participant['file'], player_id, win_length)
         player.name = name  # Override with config name
         return player
     else:
-        return create_player(ptype, player_id, name)
+        return create_player(ptype, player_id, name, win_length)
+
+
+def _resolve_win_length(size: int, win_length: int | None) -> int:
+    return win_length or (size if size <= 5 else 5)
 
 
 def main():
@@ -225,8 +232,9 @@ Examples:
         parser.error("--player1 and --player2 are required when playing games")
 
     try:
-        player1 = create_player(args.player1, -1, args.name1)
-        player2 = create_player(args.player2, 1, args.name2)
+        effective_win_length = _resolve_win_length(args.size, args.win_length)
+        player1 = create_player(args.player1, -1, args.name1, effective_win_length)
+        player2 = create_player(args.player2, 1, args.name2, effective_win_length)
 
         verbose = not args.quiet
         runner = GameRunner(size=args.size, win_length=args.win_length, verbose=verbose)

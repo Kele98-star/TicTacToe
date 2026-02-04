@@ -66,26 +66,27 @@ class HeatMapGenerator:
             print("Install with: pip install matplotlib")
             return False
 
+        size = self.size
         # Create figure with subplots
         fig, axes = plt.subplots(2, 2, figsize=(12, 12))
-        fig.suptitle(f'Move Heat Maps ({self.size}x{self.size} Board)', fontsize=14)
+        fig.suptitle(f'Move Heat Maps ({size}x{size} Board)', fontsize=14)
 
         # Helper function to add cell values
         def add_annotations(ax, data):
-            for i in range(self.size):
-                for j in range(self.size):
+            for i in range(size):
+                for j in range(size):
                     value = data[i, j]
                     if value > 0:
                         text_color = 'white' if value > data.max() * 0.5 else 'black'
                         ax.text(j, i, f'{int(value)}', ha='center', va='center',
-                                color=text_color, fontsize=8 if self.size <= 10 else 6)
+                                color=text_color, fontsize=8 if size <= 10 else 6)
 
         # All moves heat map
         ax1 = axes[0, 0]
         im1 = ax1.imshow(self.all_moves, cmap='YlOrRd', interpolation='nearest')
         ax1.set_title('All Moves')
         plt.colorbar(im1, ax=ax1, shrink=0.8)
-        if self.size <= 15:
+        if size <= 15:
             add_annotations(ax1, self.all_moves)
 
         # Player comparison (difference)
@@ -101,7 +102,7 @@ class HeatMapGenerator:
         im3 = ax3.imshow(self.winning_moves, cmap='Greens', interpolation='nearest')
         ax3.set_title('Winning Game Moves')
         plt.colorbar(im3, ax=ax3, shrink=0.8)
-        if self.size <= 15:
+        if size <= 15:
             add_annotations(ax3, self.winning_moves)
 
         # Losing moves heat map
@@ -109,16 +110,16 @@ class HeatMapGenerator:
         im4 = ax4.imshow(self.losing_moves, cmap='Reds', interpolation='nearest')
         ax4.set_title('Losing Game Moves')
         plt.colorbar(im4, ax=ax4, shrink=0.8)
-        if self.size <= 15:
+        if size <= 15:
             add_annotations(ax4, self.losing_moves)
 
         # Add grid lines and labels for small boards
         for ax in axes.flat:
-            if self.size <= 15:
-                ax.set_xticks(np.arange(self.size))
-                ax.set_yticks(np.arange(self.size))
-                ax.set_xticklabels(np.arange(self.size))
-                ax.set_yticklabels(np.arange(self.size))
+            if size <= 15:
+                ax.set_xticks(np.arange(size))
+                ax.set_yticks(np.arange(size))
+                ax.set_xticklabels(np.arange(size))
+                ax.set_yticklabels(np.arange(size))
             ax.set_xlabel('Column')
             ax.set_ylabel('Row')
 
@@ -143,6 +144,7 @@ class HeatMapGenerator:
         if stats["total_moves"] == 0:
             return stats
 
+        size = self.size
         # Find most/least played cells
         max_idx = np.unravel_index(np.argmax(self.all_moves), self.all_moves.shape)
         min_idx = np.unravel_index(np.argmin(self.all_moves), self.all_moves.shape)
@@ -153,16 +155,16 @@ class HeatMapGenerator:
         total = stats["total_moves"]
 
         # Center (middle cell or middle 4 for even boards)
-        center = self.size // 2
-        if self.size % 2 == 1:
+        center = size // 2
+        if size % 2 == 1:
             center_moves = self.all_moves[center, center]
         else:
             center_moves = (self.all_moves[center-1:center+1, center-1:center+1]).sum()
         stats["center_preference"] = center_moves / total * 100
 
         # Corners
-        corner_moves = (self.all_moves[0, 0] + self.all_moves[0, self.size-1] +
-                       self.all_moves[self.size-1, 0] + self.all_moves[self.size-1, self.size-1])
+        corner_moves = (self.all_moves[0, 0] + self.all_moves[0, size-1] +
+                       self.all_moves[size-1, 0] + self.all_moves[size-1, size-1])
         stats["corner_preference"] = corner_moves / total * 100
 
         # Edges (excluding corners)

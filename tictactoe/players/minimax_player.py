@@ -10,7 +10,8 @@ class MinimaxPlayer(Player):
     For large boards, uses depth limit.
     """
 
-    def __init__(self, name: str = "Minimax AI", player_id: int = -1, max_depth: int = None):
+    def __init__(self, name: str = "Minimax AI", player_id: int = -1, max_depth: int = None,
+                 win_length: int | None = None):
         """
         Initialize minimax player.
 
@@ -19,10 +20,9 @@ class MinimaxPlayer(Player):
             player_id: Player identifier (-1 or 1)
             max_depth: Maximum search depth (None for unlimited, recommended for large boards)
         """
-        super().__init__(name, player_id)
+        super().__init__(name, player_id, win_length)
         self.max_depth = max_depth
         self.board_size = None
-        self.win_length = None
 
     def get_move(self, board: np.ndarray, valid_moves: list) -> Tuple[int, int]:
         """
@@ -38,9 +38,14 @@ class MinimaxPlayer(Player):
         if not valid_moves:
             raise ValueError("No valid moves available")
 
+        # Use a writable copy for search; engine may pass a read-only board
+        work_board = np.array(board, copy=True)
+        work_board.setflags(write=True)
+
         # Initialize board parameters
-        self.board_size = board.shape[0]
-        self.win_length = min(5, self.board_size)  # Assume standard win length
+        self.board_size = work_board.shape[0]
+        if self.win_length is None:
+            self.win_length = min(5, self.board_size)  # Assume standard win length
 
         # If no depth limit set, use heuristic based on board size
         if self.max_depth is None:
@@ -59,13 +64,13 @@ class MinimaxPlayer(Player):
         for move in valid_moves:
             row, col = move
             # Make move
-            board[row, col] = self.player_id
+            work_board[row, col] = self.player_id
 
             # Evaluate position
-            score = self._minimax(board, 0, False, -float('inf'), float('inf'), depth_limit)
+            score = self._minimax(work_board, 0, False, -float('inf'), float('inf'), depth_limit)
 
             # Undo move
-            board[row, col] = 0
+            work_board[row, col] = 0
 
             if score > best_score:
                 best_score = score

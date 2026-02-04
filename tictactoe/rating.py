@@ -74,12 +74,7 @@ class EloRating:
         e2 = 1 - e1
 
         # Actual scores
-        if result == 1:
-            s1, s2 = 1, 0
-        elif result == -1:
-            s1, s2 = 0, 1
-        else:
-            s1, s2 = 0.5, 0.5
+        s1, s2 = {1: (1, 0), -1: (0, 1)}.get(result, (0.5, 0.5))
 
         # Calculate rating changes
         change1 = K_FACTOR * (s1 - e1)
