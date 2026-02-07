@@ -251,6 +251,7 @@ class GameRunner:
         """
         game = TicTacToeGame(size=self.size, win_length=self.win_length)
         players = {-1: player1, 1: player2}
+        self._last_game_starting_player = game.current_player
         move_history_for_heatmap = []  # Track moves for heatmap
         # Ensure players can access the actual win length for this game
         player1.win_length = game.win_length
@@ -434,7 +435,7 @@ class GameRunner:
                         timeout: float = None, elo_system=None, heatmap=None,
                         show_stats: bool = True) -> dict:
         """
-        Play multiple games, alternating who starts first.
+        Play multiple games with alternating symbol assignment.
         Args:
             player1: First player
             player2: Second player
@@ -486,7 +487,12 @@ class GameRunner:
 
             # Record game stats (move count stored by play_game)
             move_count = getattr(self, '_last_game_moves', 0)
-            stats.record_game(winner, move_count, p1_goes_first)
+            starting_player = getattr(self, '_last_game_starting_player', -1)
+            if p1_goes_first:
+                p1_went_first = (starting_player == -1)
+            else:
+                p1_went_first = (starting_player == 1)
+            stats.record_game(winner, move_count, p1_went_first)
 
             if winner == -1:
                 results['player1_wins'] += 1

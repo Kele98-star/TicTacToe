@@ -1,4 +1,5 @@
 import os
+import random
 
 import numpy as np
 
@@ -62,7 +63,7 @@ class TicTacToeGame:
         self.size = size
         self.win_length = win_length or (size if size <= 5 else 5)
         self.board = np.zeros((size, size), dtype=int)
-        self.current_player = -1  # Player 1 starts
+        self.current_player = random.choice((-1, 1))
         self.move_history = []
         self.game_over = False
         self.winner = None
@@ -71,7 +72,7 @@ class TicTacToeGame:
     def reset(self):
         """Reset the game to initial state."""
         self.board.fill(0)
-        self.current_player = -1
+        self.current_player = random.choice((-1, 1))
         self.move_history = []
         self.game_over = False
         self.winner = None
